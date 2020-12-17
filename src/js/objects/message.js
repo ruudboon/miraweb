@@ -1,4 +1,5 @@
 import MiraUIObject from "./base.js";
+import * as XebraStateActions from "../actions/xebraState.js";
 
 export default class Message extends MiraUIObject {
 	constructor(stateObj) {
@@ -23,6 +24,13 @@ export default class Message extends MiraUIObject {
 			width,
 			height
 		} = params;
+		if (params.varname && params.varname === 'keepalive') {
+			clearTimeout(this._timer);
+			this._timer = setTimeout(() => {
+				//Trigger reconnect.
+				XebraStateActions.reconnect();
+			}, 2000);
+		}
 		const padding = 4;
 		const borderRadius = 5;
 		let {

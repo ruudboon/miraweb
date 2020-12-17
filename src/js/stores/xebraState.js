@@ -14,6 +14,7 @@ class XebraStateStore extends Store {
 		super();
 
 		this._state = null;
+		this._oldState = null;
 		this._supportedObjects = {};
 		this._cachedName = null;
 
@@ -22,6 +23,7 @@ class XebraStateStore extends Store {
 		this.listenTo(XebraStateActions.changeClientName, this._onChangeClientName.bind(this));
 		this.listenTo(XebraStateActions.connect, this._connect.bind(this));
 		this.listenTo(XebraStateActions.disconnect, this._onDisconnect.bind(this));
+		this.listenTo(XebraStateActions.reconnect, this._onReconnect.bind(this));
 		this.listenTo(XebraStateActions.init, this._init.bind(this));
 		this.listenTo(XebraStateActions.setSupportedObjects, this._setSupportedObjects.bind(this));
 	}
@@ -71,6 +73,19 @@ class XebraStateStore extends Store {
 		FrameActions.reset();
 		SettingsActions.toggleView(false);
 		this.triggerEvent("reset");
+	}
+
+	_onReconnect() {
+		this._oldState = this._state;
+		this._onDisconnect();
+		this._onChangeClientName(this._oldState.name);
+		SettingsActions.changeSetting("name", this._oldState.name);
+
+		this._init({
+			hostname : this._oldState.hostname,
+			port : this._oldState.port
+		});
+		this._connect();
 	}
 
 	_connect() {
